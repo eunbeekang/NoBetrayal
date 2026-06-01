@@ -133,7 +133,7 @@
                 <div class="bg-white p-5 sm:p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col items-center text-center">
                     <div class="text-3xl sm:text-4xl mb-2 sm:mb-3">☕</div>
                     <h3 class="text-xs sm:text-sm font-semibold text-slate-400 uppercase tracking-wider mb-1">모임 컨셉</h3>
-                    <p class="text-base sm:text-lg font-bold text-slate-800">힐링 & 친목 도모</p>
+                    <p class="text-base sm:text-lg font-bold text-slate-800">결의 다지기</p>
                     <p class="text-xs sm:text-sm text-slate-500 mt-0.5 break-keep">여유로운 동선 및 휴식 위주</p>
                 </div>
             </div>
@@ -285,37 +285,46 @@
            day: 'both' | 'day1' | 'day2'
         ───────────────────────────────────────── */
         const mapPlaces = [
-            // 공통
-            { title:'숙소 (월소택지길 8)', subtitle:'동해시 월소택지길 8', searchQuery:'강원 동해시 월소택지길 8', day:'both', emoji:'🏠', info:{ hours:'입실 15:00 / 퇴실 11:00', note:'1박 2일 숙소' } },
+            // ── 공통 ──
+            { title:'숙소 (월소택지길 8)', subtitle:'동해시 월소택지길 8', searchQuery:'강원 동해시 월소택지길 8', day:'both', emoji:'🏠', parking:'❓확인필요', info:{ hours:'입실 15:00 / 퇴실 11:00', note:'1박 2일 숙소' } },
 
-            // 1일차 점심
-            { title:'호재퀴진', subtitle:'동해시 일출로 151', searchQuery:'호재퀴진 동해', day:'day1', emoji:'🍝', info:{ hours:'09:30~17:00', phone:'070-7557-7293', note:'양식(파스타) / 아기의자 ⭕️' } },
-            { title:'동북횟집', subtitle:'동해시 일출로 95', searchQuery:'동북횟집 동해 묵호', day:'day1', emoji:'🐟', info:{ hours:'08:30~20:00', phone:'033-532-7156', note:'물회·회덮밥 / 좌식룸 ⭕️' } },
-            { title:'거동탕수육', subtitle:'동해시 일출로 83', searchQuery:'거동탕수육 동해', day:'day1', emoji:'🦑', info:{ hours:'11:00~19:30', phone:'033-532-4778', note:'문어탕수육·짬뽕 / 아기의자 ⭕️' } },
-            { title:'온다 묵호본점', subtitle:'동해시 일출로 151', searchQuery:'온다 묵호본점', day:'day1', emoji:'🐙', info:{ hours:'10:30~20:30', phone:'0507-1494-4863', note:'문어우삼겹·물회 / 아기의자 ⭕️' } },
+            // ── 1일차 점심 ──
+            { title:'호재퀴진', subtitle:'동해시 일출로 151 (삼양비취타워)', searchQuery:'호재퀴진 동해', day:'day1', emoji:'🍝', parking:'🅿️ 삼양비취타워 건물 주차장 이용', info:{ hours:'09:30~17:00', phone:'070-7557-7293', note:'양식(파스타) / 아기의자 ⭕️' } },
+            { title:'동북횟집', subtitle:'동해시 일출로 95', searchQuery:'동북횟집 동해 묵호', day:'day1', emoji:'🐟', parking:'🅿️ 수변공원 공영주차장 이용 (도보 2~3분)', info:{ hours:'08:30~20:00', phone:'033-532-7156', note:'물회·회덮밥 / 좌식룸 ⭕️' } },
+            { title:'거동탕수육', subtitle:'동해시 일출로 83', searchQuery:'거동탕수육 동해', day:'day1', emoji:'🦑', parking:'🅿️ 건너편 건물 2층 무료주차 (묵호어판장 공영주차장도 가능)', info:{ hours:'11:00~19:30', phone:'033-532-4778', note:'문어탕수육·짬뽕 / 아기의자 ⭕️ / 웨이팅 많음' } },
+            { title:'온다 묵호본점', subtitle:'동해시 일출로 151 (삼양비취타워)', searchQuery:'온다 묵호본점', day:'day1', emoji:'🐙', parking:'🅿️ 삼양비취타워 건물 주차장 이용', info:{ hours:'10:30~20:30 (B.T 15:30~16:30)', phone:'0507-1494-4863', note:'문어우삼겹·물회 / 아기의자 ⭕️' } },
 
-            // 1일차 해변·마트
-            { title:'어달해수욕장', subtitle:'동해시 어달동', searchQuery:'어달해수욕장', day:'day1', emoji:'🏖️', info:{ note:'수심이 얕고 파도 잔잔 / 유아 물놀이 최적' } },
-            { title:'사랑드림마트', subtitle:'동해시 평릉길 60', searchQuery:'사랑드림마트 동해', day:'day1', emoji:'🛒', info:{ note:'군마트 – 신분증·가족관계증명서 필수' } },
-            { title:'행복드림마트', subtitle:'동해시 중앙로 145', searchQuery:'행복드림마트 동해', day:'day1', emoji:'🛒', info:{ hours:'평일 10:00~19:00 / 토 09:30~17:00', phone:'070-4251-2567', note:'군마트 – 신분증·가족관계증명서 필수' } },
+            // ── 1일차 해변 ──
+            { title:'어달해수욕장', subtitle:'동해시 어달동', searchQuery:'어달해수욕장', day:'day1', emoji:'🏖️', parking:'🅿️ 해변 인근 무료 노상주차 가능 (성수기 혼잡)', info:{ note:'수심이 얕고 파도 잔잔 / 유아 물놀이 최적' } },
 
-            // 1일차 저녁 포장
-            { title:'파닭김밥', subtitle:'동해시 시장안길 22', searchQuery:'파닭김밥 동해 묵호', day:'day1', emoji:'🍱', info:{ hours:'10:00~18:00 (16시 이후 포장만)', phone:'010-5669-9445' } },
-            { title:'묵호김밥', subtitle:'동해시 일출로 9-1', searchQuery:'묵호김밥 동해', day:'day1', emoji:'🍱', info:{ hours:'10:00~18:00', phone:'010-2225-7796', note:'포장 예약 필수' } },
-            { title:'경상도횟집', subtitle:'동해시 일출로 151', searchQuery:'경상도횟집 동해 묵호', day:'day1', emoji:'🐠', info:{ hours:'10:00~24:00', phone:'033-534-9526' } },
-            { title:'문어닭강정', subtitle:'동해시 일출로 61', searchQuery:'문어닭강정 동해', day:'day1', emoji:'🐙', info:{ hours:'11:00~20:00', phone:'033-531-1554' } },
-            { title:'정훈수산 (대게)', subtitle:'동해시 일출로 151', searchQuery:'정훈수산 대게 동해', day:'day1', emoji:'🦀', info:{ hours:'10:00~21:00', phone:'010-7372-9722' } },
+            // ── 1일차 마트 ──
+            { title:'사랑드림마트', subtitle:'동해시 평릉길 60', searchQuery:'사랑드림마트 동해', day:'day1', emoji:'🛒', parking:'🅿️ 전용 주차장 있음', info:{ note:'군마트 – 신분증·가족관계증명서 필수' } },
+            { title:'행복드림마트', subtitle:'동해시 중앙로 145', searchQuery:'행복드림마트 동해', day:'day1', emoji:'🛒', parking:'🅿️ 전용 주차장 있음', info:{ hours:'평일 10:00~19:00 / 토 09:30~17:00', phone:'070-4251-2567', note:'군마트 – 신분증·가족관계증명서 필수' } },
 
-            // 2일차 점심
-            { title:'오뚜기칼국수', subtitle:'동해시 발한로 212-1', searchQuery:'오뚜기칼국수 동해', day:'day2', emoji:'🍜', info:{ hours:'07:00~18:00', note:'장칼국수 / 좌식 ⭕️' } },
-            { title:'홍대포 본점', subtitle:'동해시 감추로 97', searchQuery:'홍대포 동해 감추로', day:'day2', emoji:'🍲', info:{ hours:'11:00~22:00', note:'해천탕 / 좌·입식 ⭕️' } },
-            { title:'화성곰치국', subtitle:'동해시 일출로 175', searchQuery:'화성곰치국 동해', day:'day2', emoji:'🐡', info:{ hours:'07:00~17:00', phone:'033-532-5166', note:'곰치국 / 좌식 ⭕️' } },
+            // ── 1일차 저녁 포장 (묵호항 일대 – 공영주차장 활용) ──
+            { title:'파닭김밥', subtitle:'동해시 시장안길 22', searchQuery:'파닭김밥 동해 묵호', day:'day1', emoji:'🍱', parking:'🅿️ 묵호중앙시장 공영 무료주차장 이용', info:{ hours:'10:00~18:00 (16시 이후 포장만)', phone:'010-5669-9445' } },
+            { title:'묵호김밥', subtitle:'동해시 일출로 9-1', searchQuery:'묵호김밥 동해', day:'day1', emoji:'🍱', parking:'🅿️ 묵호항 공영주차장 이용 (도보 5분)', info:{ hours:'10:00~18:00', phone:'010-2225-7796', note:'포장 예약 필수' } },
+            { title:'경상도횟집', subtitle:'동해시 일출로 151', searchQuery:'경상도횟집 동해 묵호', day:'day1', emoji:'🐠', parking:'🅿️ 삼양비취타워 건물 주차장 이용', info:{ hours:'10:00~24:00', phone:'033-534-9526' } },
+            { title:'문어닭강정', subtitle:'동해시 일출로 61', searchQuery:'문어닭강정 동해', day:'day1', emoji:'🐙', parking:'🅿️ 묵호항 공영주차장 이용 (도보 5분)', info:{ hours:'11:00~20:00', phone:'033-531-1554' } },
+            { title:'정훈수산 (대게)', subtitle:'동해시 일출로 151', searchQuery:'정훈수산 대게 동해', day:'day1', emoji:'🦀', parking:'🅿️ 삼양비취타워 건물 주차장 이용', info:{ hours:'10:00~21:00', phone:'010-7372-9722' } },
 
-            // 2일차 관광·카페
-            { title:'도째비골 스카이밸리', subtitle:'동해시 하늘로 1', searchQuery:'도째비골 스카이밸리', day:'day2', emoji:'🌅', info:{ note:'스카이밸리 + 해랑전망대' } },
-            { title:'카페 한결', subtitle:'동해시 일출로 195', searchQuery:'카페한결 동해 묵호', day:'day2', emoji:'☕', info:{ hours:'09:00~21:00', note:'아기의자 ⭕️ / 오션뷰' } },
-            { title:'브릭베이커스', subtitle:'동해시 일출로 191', searchQuery:'브릭베이커스 동해', day:'day2', emoji:'☕', info:{ hours:'07:00~19:00', note:'아기의자 ⭕️' } },
-            { title:'투썸플레이스 어달해변점', subtitle:'동해시 묵호동', searchQuery:'투썸플레이스 어달해변 동해', day:'day2', emoji:'☕', info:{ hours:'09:00~23:00', note:'아기의자 ⭕️ / 어달해변 인근' } },
+            // ── 공영주차장 (지도 표시용) ──
+            { title:'묵호항 공영주차장', subtitle:'발한동 4-51', searchQuery:'묵호항 공영주차장 동해', day:'both', emoji:'🅿️', parking:'✅ 무료 / 778면 규모 (성수기 혼잡)', info:{ hours:'24시간', note:'묵호항 일대 식당 이용 시 메인 거점 주차장' } },
+            { title:'묵호어판장 공영주차장', subtitle:'일출로 일대', searchQuery:'묵호어판장 주차장 동해', day:'both', emoji:'🅿️', parking:'✅ 무료', info:{ hours:'24시간', note:'거동탕수육, 묵호김밥 등 이용 시 편리' } },
+            { title:'묵호중앙시장 공영주차장', subtitle:'시장 인근', searchQuery:'묵호중앙시장 주차장 동해', day:'both', emoji:'🅿️', parking:'✅ 무료', info:{ note:'파닭김밥, 시장 주변 이용 시 편리' } },
+
+            // ── 2일차 점심 ──
+            { title:'오뚜기칼국수', subtitle:'동해시 발한로 212-1', searchQuery:'오뚜기칼국수 동해', day:'day2', emoji:'🍜', parking:'🅿️ 인근 공영주차장 이용', info:{ hours:'07:00~18:00', note:'장칼국수 / 좌식 ⭕️' } },
+            { title:'홍대포 본점', subtitle:'동해시 감추로 97', searchQuery:'홍대포 동해 감추로', day:'day2', emoji:'🍲', parking:'🅿️ 매장 인근 주차 가능', info:{ hours:'11:00~22:00', note:'해천탕 / 좌·입식 ⭕️' } },
+            { title:'화성곰치국', subtitle:'동해시 일출로 175', searchQuery:'화성곰치국 동해', day:'day2', emoji:'🐡', parking:'🅿️ 수변공원 공영주차장 이용', info:{ hours:'07:00~17:00', phone:'033-532-5166', note:'곰치국 / 좌식 ⭕️' } },
+
+            // ── 2일차 관광 ──
+            { title:'도째비골 스카이밸리', subtitle:'동해시 하늘로 1', searchQuery:'도째비골 스카이밸리', day:'day2', emoji:'🌅', parking:'🅿️ 전용 주차장 있음 (무료)', info:{ note:'스카이밸리 + 해랑전망대' } },
+
+            // ── 2일차 카페 ──
+            { title:'카페 한결', subtitle:'동해시 일출로 195', searchQuery:'카페한결 동해 묵호', day:'day2', emoji:'☕', parking:'🅿️ 매장 앞 해변 노상주차 가능 (소규모, 만차 시 갓길 이용)', info:{ hours:'09:00~21:00', note:'아기의자 ⭕️ / 오션뷰' } },
+            { title:'브릭베이커스', subtitle:'동해시 일출로 191', searchQuery:'브릭베이커스 동해', day:'day2', emoji:'☕', parking:'🅿️ 건너편 길가 노상주차 가능', info:{ hours:'07:00~19:00', note:'아기의자 ⭕️' } },
+            { title:'투썸플레이스 어달해변점', subtitle:'동해시 일출로 297', searchQuery:'투썸플레이스 어달해변 동해', day:'day2', emoji:'☕', parking:'✅ 매장 앞 도로변 무료주차 가능', info:{ hours:'09:00~23:00', note:'아기의자 ⭕️ / 루프탑 오션뷰' } },
         ];
 
         /* 일차별 마커 색상 */
@@ -502,15 +511,22 @@
             /* ── 하단 패널 열기 ── */
             openPanel(place, pos) {
                 const col = dayColor[place.day] || dayColor.day1;
-                const dayLabel = { both:'숙소(공통)', day1:'1일차 (토)', day2:'2일차 (일)' };
+                const dayLabel = { both:'공통', day1:'1일차 (토)', day2:'2일차 (일)' };
                 const dayBadgeStyle = `background:${col.bg}20;color:${col.bg};`;
+                const isParking = place.emoji === '🅿️';
 
                 let extraRows = '';
                 if (place.info.hours) extraRows += `<div class="flex gap-2 items-start"><span class="text-slate-400 text-xs w-8 shrink-0 pt-0.5">시간</span><span class="text-slate-700 text-sm font-medium break-keep">${place.info.hours}</span></div>`;
                 if (place.info.phone) extraRows += `<div class="flex gap-2 items-center"><span class="text-slate-400 text-xs w-8 shrink-0">전화</span><a href="tel:${place.info.phone}" class="text-sky-600 text-sm font-semibold hover:underline">${place.info.phone}</a></div>`;
+                if (place.parking) {
+                    const pColor = place.parking.startsWith('✅') ? '#15803d' : '#1D4ED8';
+                    extraRows += `<div class="flex gap-2 items-start"><span class="text-slate-400 text-xs w-8 shrink-0 pt-0.5">주차</span><span class="text-sm font-medium break-keep" style="color:${pColor};">${place.parking}</span></div>`;
+                }
                 if (place.info.note)  extraRows += `<div class="flex gap-2 items-start"><span class="text-slate-400 text-xs w-8 shrink-0 pt-0.5">메모</span><span class="text-slate-600 text-sm break-keep">${place.info.note}</span></div>`;
 
-                const addrLine = place.address || (place.latlng ? '좌표로 등록된 장소' : '');
+                const btnHtml = isParking
+                    ? `<a href="https://map.kakao.com/link/search/${encodeURIComponent(place.title)}" target="_blank" rel="noopener" class="block w-full text-center py-2.5 rounded-xl text-sm font-bold text-white" style="background:#1D4ED8;">카카오맵에서 길찾기</a>`
+                    : `<div class="flex gap-2"><a href="https://map.kakao.com/link/search/${encodeURIComponent(place.title)}" target="_blank" rel="noopener" class="flex-1 text-center py-2.5 rounded-xl text-sm font-bold text-white" style="background:${col.bg};">카카오맵에서 보기</a>${place.info.phone ? `<a href="tel:${place.info.phone}" class="flex items-center justify-center px-4 rounded-xl text-sm font-bold border border-slate-200 text-slate-700">📞 전화</a>` : ''}</div>`;
 
                 document.getElementById('place-panel-content').innerHTML = `
                     <div class="flex items-start gap-2 mb-3">
@@ -520,22 +536,8 @@
                             <p class="text-sm text-slate-500 mt-0.5 break-keep">${place.subtitle}</p>
                         </div>
                     </div>
-                    <div class="border-t border-slate-100 pt-3 space-y-2.5">
-                        <div class="flex gap-2 items-start">
-                            <span class="text-slate-400 text-xs w-8 shrink-0 pt-0.5">주소</span>
-                            <span class="text-slate-700 text-sm font-medium break-keep">${addrLine}</span>
-                        </div>
-                        ${extraRows}
-                    </div>
-                    <div class="mt-4 flex gap-2">
-                        <a href="https://map.kakao.com/link/search/${encodeURIComponent(place.title)}"
-                           target="_blank" rel="noopener"
-                           class="flex-1 text-center py-2.5 rounded-xl text-sm font-bold text-white"
-                           style="background:${col.bg};">
-                           카카오맵에서 보기
-                        </a>
-                        ${place.info.phone ? `<a href="tel:${place.info.phone}" class="flex items-center justify-center px-4 rounded-xl text-sm font-bold border border-slate-200 text-slate-700">📞 전화</a>` : ''}
-                    </div>
+                    <div class="border-t border-slate-100 pt-3 space-y-2.5">${extraRows}</div>
+                    <div class="mt-4">${btnHtml}</div>
                 `;
 
                 if (this.kakaoMap && pos) {
