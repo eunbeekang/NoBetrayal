@@ -22,7 +22,66 @@
         .timeline-content-hidden { display: none; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-        word-break: keep-all;
+
+        /* ── 카카오맵 스타일 하단 패널 ── */
+        #place-panel {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            background: #fff;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -4px 24px rgba(0,0,0,0.18);
+            transform: translateY(100%);
+            transition: transform 0.32s cubic-bezier(0.34, 1.26, 0.64, 1);
+            z-index: 100;
+            max-height: 70%;
+            overflow-y: auto;
+        }
+        #place-panel.open {
+            transform: translateY(0);
+        }
+        #place-panel .panel-handle {
+            width: 36px; height: 4px;
+            background: #D1D5DB;
+            border-radius: 2px;
+            margin: 12px auto 0;
+        }
+        #place-panel .panel-close {
+            position: absolute;
+            top: 14px; right: 16px;
+            width: 28px; height: 28px;
+            background: #F1F5F9;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            color: #64748B;
+            border: none;
+            z-index: 101;
+        }
+        #place-panel .panel-close:hover { background: #E2E8F0; }
+
+        /* 카테고리 배지 색상 */
+        .badge-stay    { background:#EFF6FF; color:#1D4ED8; }
+        .badge-food    { background:#FFF7ED; color:#C2410C; }
+        .badge-cafe    { background:#F0FDF4; color:#15803D; }
+        .badge-beach   { background:#F0F9FF; color:#0369A1; }
+        .badge-market  { background:#FAF5FF; color:#7E22CE; }
+        .badge-view    { background:#FFF1F2; color:#BE123C; }
+
+        /* 커스텀 마커 */
+        .custom-marker {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 지도 래퍼 */
+        #map-wrapper {
+            position: relative;
+            overflow: hidden;
+            border-radius: 0.5rem;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col overflow-x-hidden">
@@ -46,12 +105,12 @@
 
     <main class="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
 
+        <!-- 모임 개요 -->
         <section id="overview" class="tab-content block">
             <div class="mb-5 sm:mb-6">
                 <h2 class="text-xl sm:text-2xl font-bold text-slate-800 mb-2">행사 개요</h2>
                 <p class="text-sm sm:text-base text-slate-600 break-keep">이번 동해 모임의 핵심 정보를 한눈에 확인하세요. 유아를 동반한 모임인 만큼 이동 동선을 최소화하고 휴식에 집중하는 컨셉입니다.</p>
             </div>
-            
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <div class="bg-white p-5 sm:p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col items-center text-center">
                     <div class="text-3xl sm:text-4xl mb-2 sm:mb-3">📅</div>
@@ -74,12 +133,13 @@
                 <div class="bg-white p-5 sm:p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col items-center text-center">
                     <div class="text-3xl sm:text-4xl mb-2 sm:mb-3">☕</div>
                     <h3 class="text-xs sm:text-sm font-semibold text-slate-400 uppercase tracking-wider mb-1">모임 컨셉</h3>
-                    <p class="text-base sm:text-lg font-bold text-slate-800">결의 다지기</p>
+                    <p class="text-base sm:text-lg font-bold text-slate-800">힐링 & 친목 도모</p>
                     <p class="text-xs sm:text-sm text-slate-500 mt-0.5 break-keep">여유로운 동선 및 휴식 위주</p>
                 </div>
             </div>
         </section>
 
+        <!-- 세부 일정 -->
         <section id="timeline" class="tab-content hidden">
             <div class="mb-5 sm:mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
@@ -96,18 +156,39 @@
             </div>
         </section>
 
+        <!-- 지도 보기 -->
         <section id="map" class="tab-content hidden">
             <div class="mb-5 sm:mb-6">
                 <h2 class="text-xl sm:text-2xl font-bold text-slate-800 mb-2">동해 여행 지도</h2>
-                <p class="text-sm sm:text-base text-slate-600 break-keep">우리가 방문할 주요 거점들의 위치를 한눈에 파악하세요.</p>
+                <p class="text-sm sm:text-base text-slate-600 break-keep">마커를 탭하면 장소 상세정보를 확인할 수 있어요.</p>
             </div>
+
+            <!-- 카테고리 필터 -->
+            <div class="flex gap-2 mb-3 overflow-x-auto scrollbar-hide pb-1">
+                <button onclick="app.filterMarkers('all')" id="filter-all" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold bg-sky-600 text-white whitespace-nowrap">전체</button>
+                <button onclick="app.filterMarkers('stay')" id="filter-stay" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-200 text-slate-600 whitespace-nowrap">🏠 숙소</button>
+                <button onclick="app.filterMarkers('food')" id="filter-food" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-200 text-slate-600 whitespace-nowrap">🍽️ 식당</button>
+                <button onclick="app.filterMarkers('cafe')" id="filter-cafe" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-200 text-slate-600 whitespace-nowrap">☕ 카페</button>
+                <button onclick="app.filterMarkers('beach')" id="filter-beach" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-200 text-slate-600 whitespace-nowrap">🏖️ 해변/관광</button>
+                <button onclick="app.filterMarkers('market')" id="filter-market" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-200 text-slate-600 whitespace-nowrap">🛒 마트</button>
+            </div>
+
             <div class="bg-white p-2 rounded-xl shadow-sm border border-slate-100">
-                <div id="kakao-map" class="w-full h-[400px] sm:h-[500px] md:h-[600px] rounded-lg bg-slate-100 flex items-center justify-center">
-                    <p class="text-slate-400 text-sm">지도를 불러오는 중입니다...</p>
+                <div id="map-wrapper" class="w-full h-[450px] sm:h-[540px] md:h-[620px]">
+                    <div id="kakao-map" class="w-full h-full rounded-lg bg-slate-100 flex items-center justify-center">
+                        <p class="text-slate-400 text-sm">지도를 불러오는 중입니다...</p>
+                    </div>
+                    <!-- 카카오맵 스타일 하단 패널 -->
+                    <div id="place-panel">
+                        <div class="panel-handle"></div>
+                        <button class="panel-close" onclick="app.closePanel()">✕</button>
+                        <div id="place-panel-content" class="px-5 pb-6 pt-3"></div>
+                    </div>
                 </div>
             </div>
         </section>
 
+        <!-- 준비물 & 역할 -->
         <section id="prep" class="tab-content hidden">
             <div class="mb-5 sm:mb-6">
                 <h2 class="text-xl sm:text-2xl font-bold text-slate-800 mb-2">준비물 및 역할 분담</h2>
@@ -157,83 +238,24 @@
     </main>
 
     <script>
+        /* ═══════════════════════════════════════════
+           데이터
+        ═══════════════════════════════════════════ */
         const scheduleData = {
             day1: [
-                { 
-                    time: "12:00 ~ 13:30", title: "동해 도착 및 점심 식사", location: "다양한 플랜 중 택1", icon: "🍽️", 
-                    details: `
-                        <div class="space-y-3 mt-1">
-                            <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">Plan A: 호재퀴진 <span class="text-[11px] sm:text-xs font-medium text-sky-700 bg-sky-50 px-2 py-1 rounded-full whitespace-nowrap">[아기의자 ⭕️]</span></p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14">메뉴:</strong>양식 (파스타 등)</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">시간:</strong>09:30 ~ 17:00</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">전화:</strong><a href="tel:070-7557-7293" class="text-sky-600 hover:underline">070-7557-7293</a></li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">동해시 일출로 151 삼양비취타워 17호</span></li></ul></div>
-                            <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">Plan B: 동북횟집 <span class="text-[11px] sm:text-xs font-medium text-sky-700 bg-sky-50 px-2 py-1 rounded-full whitespace-nowrap">[좌식 룸 ⭕️]</span></p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14">메뉴:</strong>물회, 회덮밥</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">시간:</strong>08:30 ~ 20:00</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">전화:</strong><a href="tel:033-532-7156" class="text-sky-600 hover:underline">033-532-7156</a></li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">동해시 일출로 95 2층</span></li></ul></div>
-                            <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">Plan C: 거동탕수육 <span class="text-[11px] sm:text-xs font-medium text-sky-700 bg-sky-50 px-2 py-1 rounded-full whitespace-nowrap">[아기의자 ⭕️]</span></p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14">메뉴:</strong>문어 탕수육·짬뽕</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">시간:</strong>11:00 ~ 19:30</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">전화:</strong><a href="tel:033-532-4778" class="text-sky-600 hover:underline">033-532-4778</a></li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">동해시 일출로 83</span></li></ul></div>
-                            <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">Plan D: 온다 묵호본점 <span class="text-[11px] sm:text-xs font-medium text-sky-700 bg-sky-50 px-2 py-1 rounded-full whitespace-nowrap">[아기의자 ⭕️]</span></p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">메뉴:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">문어우삼겹, 물회, 철판요리</span></li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">시간:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">10:30 ~ 20:30 (B.T 15:30~16:30)</span></li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">전화:</strong><a href="tel:0507-1494-4863" class="text-sky-600 hover:underline">0507-1494-4863</a></li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">동해시 일출로 151</span></li></ul></div>
-                        </div>` 
-                },
-                { 
-                    time: "13:30 ~ 14:50", title: "어달해변 산책 및 물놀이", location: "어달해수욕장", icon: "🏖️", 
-                    details: `<div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm mt-1 text-sm sm:text-base text-slate-600 break-keep"><p><strong class="text-slate-800">특징:</strong> 수심이 얕고 파도가 잔잔해 식후 가볍게 바닷물에 발을 담그며 놀기 좋습니다.</p><p class="mt-1.5"><strong class="text-slate-800">주소:</strong> 강원특별자치도 동해시 묵호동 일대</p></div>` 
-                },
-                { 
-                    time: "15:00 ~ 15:30", title: "숙소 입실 및 정비", location: "도째비골 인근 숙소", icon: "🏠", 
-                    details: `<div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm mt-1 text-sm sm:text-base text-slate-600 break-keep"><p><strong class="text-slate-800">주소:</strong> 월소택지길 8</p><p class="mt-1.5">체크인 후 짐을 풀고 아기들 정비 및 잠시 휴식을 취합니다.</p></div>` 
-                },
-                { 
-                    time: "15:30 ~ 16:30", title: "마트 장보기 (고기/주류)", location: "동해 군마트 중 택1", icon: "🛒", 
-                    details: `
-                        <div class="space-y-3 mt-1">
-                            <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800">사랑드림마트</p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">강원특별자치도 동해시 평릉길 60-1</span></li></ul></div>
-                            <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800">행복드림마트</p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">시간:</strong><span class="inline-block break-keep" style="width: calc(100% - 3.5rem);">평일 10:00~19:00, 토 09:30~17:00 (점심시간 미운영)</span></li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">전화:</strong><a href="tel:070-4251-2567" class="text-sky-600 hover:underline">070-4251-2567</a></li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">강원특별자치도 동해시 중앙로 145</span></li></ul></div>
-                            <p class="mt-3 bg-slate-50 p-3 rounded-lg text-xs sm:text-sm border border-slate-200 text-slate-700 break-keep">※ 군마트 이용 대상자 확인 및 <strong class="text-red-500">신분증, 가족관계증명서</strong> 지참 필수!</p>
-                        </div>` 
-                },
-                { 
-                    time: "16:40 ~ 17:30", title: "저녁 식사 포장 픽업", location: "묵호항 일대", icon: "🛍️", 
-                    details: `
-                        <div class="space-y-3 mt-1">
-                            <div class="bg-amber-50 border border-amber-200 p-3 sm:p-4 rounded-lg mb-2"><p class="text-amber-800 font-bold text-sm sm:text-base text-center break-keep">💡 인원을 분배하여 각 식당에서 동시에 픽업하는 것을 추천합니다!</p></div>
-                            <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">① 파닭김밥 <span class="text-[11px] sm:text-xs font-medium text-sky-700 bg-sky-50 px-2 py-1 rounded-full whitespace-nowrap">[포장 ⭕️]</span></p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">시간:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">10:00 ~ 18:00 (16시 이후 포장만)</span></li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">전화:</strong><a href="tel:010-5669-9445" class="text-sky-600 hover:underline">010-5669-9445</a></li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">동해시 시장안길 22</span></li></ul></div>
-                            <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">② 묵호김밥 <span class="text-[11px] sm:text-xs font-medium text-pink-700 bg-pink-50 px-2 py-1 rounded-full whitespace-nowrap">[포장 ⭕️ / 예약필수]</span></p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14">시간:</strong>10:00 ~ 18:00</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">전화:</strong><a href="tel:010-2225-7796" class="text-sky-600 hover:underline">010-2225-7796</a></li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">동해시 일출로 9-1 1층</span></li></ul></div>
-                            <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">③ 경상도횟집 <span class="text-[11px] sm:text-xs font-medium text-sky-700 bg-sky-50 px-2 py-1 rounded-full whitespace-nowrap">[포장 ⭕️]</span></p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14">시간:</strong>10:00 ~ 24:00</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">전화:</strong><a href="tel:033-534-9526" class="text-sky-600 hover:underline">033-534-9526</a></li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">동해시 일출로 151 19호</span></li></ul></div>
-                            <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">④ 문어닭강정 <span class="text-[11px] sm:text-xs font-medium text-sky-700 bg-sky-50 px-2 py-1 rounded-full whitespace-nowrap">[포장 ⭕️]</span></p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14">시간:</strong>11:00 ~ 20:00</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">전화:</strong><a href="tel:033-531-1554" class="text-sky-600 hover:underline">033-531-1554</a></li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">동해시 일출로 61</span></li></ul></div>
-                            <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">⑤ 정훈수산(대게) <span class="text-[11px] sm:text-xs font-medium text-sky-700 bg-sky-50 px-2 py-1 rounded-full whitespace-nowrap">[포장 ⭕️]</span></p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14">시간:</strong>10:00 ~ 21:00</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">전화:</strong><a href="tel:010-7372-9722" class="text-sky-600 hover:underline">010-7372-9722</a></li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">동해시 일출로 151 1층 13호</span></li></ul></div>
-                        </div>` 
-                },
-                { 
-                    time: "18:00 ~", title: "바비큐 파티 및 저녁 식사", location: "숙소", icon: "🥩", 
-                    details: `<div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm mt-1 text-sm sm:text-base text-slate-600"><p>포장해온 음식들과 바비큐 고기로 풍성한 저녁 식사!</p></div>` 
-                }
+                { time: "12:00 ~ 13:30", title: "동해 도착 및 점심 식사", location: "다양한 플랜 중 택1", icon: "🍽️", details: `<div class="space-y-3 mt-1"><div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">Plan A: 호재퀴진 <span class="text-[11px] sm:text-xs font-medium text-sky-700 bg-sky-50 px-2 py-1 rounded-full whitespace-nowrap">[아기의자 ⭕️]</span></p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14">메뉴:</strong>양식 (파스타 등)</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">시간:</strong>09:30 ~ 17:00</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">전화:</strong><a href="tel:070-7557-7293" class="text-sky-600 hover:underline">070-7557-7293</a></li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">동해시 일출로 151 삼양비취타워 17호</span></li></ul></div><div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">Plan B: 동북횟집 <span class="text-[11px] sm:text-xs font-medium text-sky-700 bg-sky-50 px-2 py-1 rounded-full whitespace-nowrap">[좌식 룸 ⭕️]</span></p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14">메뉴:</strong>물회, 회덮밥</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">시간:</strong>08:30 ~ 20:00</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">전화:</strong><a href="tel:033-532-7156" class="text-sky-600 hover:underline">033-532-7156</a></li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">동해시 일출로 95 2층</span></li></ul></div><div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">Plan C: 거동탕수육 <span class="text-[11px] sm:text-xs font-medium text-sky-700 bg-sky-50 px-2 py-1 rounded-full whitespace-nowrap">[아기의자 ⭕️]</span></p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14">메뉴:</strong>문어 탕수육·짬뽕</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">시간:</strong>11:00 ~ 19:30</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">전화:</strong><a href="tel:033-532-4778" class="text-sky-600 hover:underline">033-532-4778</a></li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">동해시 일출로 83</span></li></ul></div><div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">Plan D: 온다 묵호본점 <span class="text-[11px] sm:text-xs font-medium text-sky-700 bg-sky-50 px-2 py-1 rounded-full whitespace-nowrap">[아기의자 ⭕️]</span></p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">메뉴:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">문어우삼겹, 물회, 철판요리</span></li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">시간:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">10:30 ~ 20:30 (B.T 15:30~16:30)</span></li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">전화:</strong><a href="tel:0507-1494-4863" class="text-sky-600 hover:underline">0507-1494-4863</a></li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">동해시 일출로 151</span></li></ul></div></div>` },
+                { time: "13:30 ~ 14:50", title: "어달해변 산책 및 물놀이", location: "어달해수욕장", icon: "🏖️", details: `<div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm mt-1 text-sm sm:text-base text-slate-600 break-keep"><p><strong class="text-slate-800">특징:</strong> 수심이 얕고 파도가 잔잔해 식후 가볍게 바닷물에 발을 담그며 놀기 좋습니다.</p><p class="mt-1.5"><strong class="text-slate-800">주소:</strong> 강원 동해시 어달동 197-1</p></div>` },
+                { time: "15:00 ~ 15:30", title: "숙소 입실 및 정비", location: "도째비골 인근 숙소", icon: "🏠", details: `<div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm mt-1 text-sm sm:text-base text-slate-600 break-keep"><p><strong class="text-slate-800">주소:</strong> 월소택지길 8</p><p class="mt-1.5">체크인 후 짐을 풀고 아기들 정비 및 잠시 휴식을 취합니다.</p></div>` },
+                { time: "15:30 ~ 16:30", title: "마트 장보기 (고기/주류)", location: "동해 군마트 중 택1", icon: "🛒", details: `<div class="space-y-3 mt-1"><div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800">사랑드림마트</p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">강원 동해시 평릉길 60</span></li></ul></div><div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800">행복드림마트</p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">시간:</strong><span class="inline-block break-keep" style="width: calc(100% - 3.5rem);">평일 10:00~19:00, 토 09:30~17:00 (점심시간 미운영)</span></li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">전화:</strong><a href="tel:070-4251-2567" class="text-sky-600 hover:underline">070-4251-2567</a></li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">강원 동해시 중앙로 145</span></li></ul></div><p class="mt-3 bg-slate-50 p-3 rounded-lg text-xs sm:text-sm border border-slate-200 text-slate-700 break-keep">※ 군마트 이용 대상자 확인 및 <strong class="text-red-500">신분증, 가족관계증명서</strong> 지참 필수!</p></div>` },
+                { time: "16:40 ~ 17:30", title: "저녁 식사 포장 픽업", location: "묵호항 일대", icon: "🛍️", details: `<div class="space-y-3 mt-1"><div class="bg-amber-50 border border-amber-200 p-3 sm:p-4 rounded-lg mb-2"><p class="text-amber-800 font-bold text-sm sm:text-base text-center break-keep">💡 인원을 분배하여 각 식당에서 동시에 픽업하는 것을 추천합니다!</p></div><div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">① 파닭김밥 <span class="text-[11px] sm:text-xs font-medium text-sky-700 bg-sky-50 px-2 py-1 rounded-full whitespace-nowrap">[포장 ⭕️]</span></p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">시간:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">10:00 ~ 18:00 (16시 이후 포장만)</span></li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">전화:</strong><a href="tel:010-5669-9445" class="text-sky-600 hover:underline">010-5669-9445</a></li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">강원 동해시 시장안길 22</span></li></ul></div><div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">② 묵호김밥 <span class="text-[11px] sm:text-xs font-medium text-pink-700 bg-pink-50 px-2 py-1 rounded-full whitespace-nowrap">[포장 ⭕️ / 예약필수]</span></p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14">시간:</strong>10:00 ~ 18:00</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">전화:</strong><a href="tel:010-2225-7796" class="text-sky-600 hover:underline">010-2225-7796</a></li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">강원 동해시 일출로 9-1 1층</span></li></ul></div><div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">③ 경상도횟집 <span class="text-[11px] sm:text-xs font-medium text-sky-700 bg-sky-50 px-2 py-1 rounded-full whitespace-nowrap">[포장 ⭕️]</span></p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14">시간:</strong>10:00 ~ 24:00</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">전화:</strong><a href="tel:033-534-9526" class="text-sky-600 hover:underline">033-534-9526</a></li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">강원 동해시 일출로 151 19호</span></li></ul></div><div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">④ 문어닭강정 <span class="text-[11px] sm:text-xs font-medium text-sky-700 bg-sky-50 px-2 py-1 rounded-full whitespace-nowrap">[포장 ⭕️]</span></p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14">시간:</strong>11:00 ~ 20:00</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">전화:</strong><a href="tel:033-531-1554" class="text-sky-600 hover:underline">033-531-1554</a></li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">강원 동해시 일출로 61</span></li></ul></div><div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">⑤ 정훈수산(대게) <span class="text-[11px] sm:text-xs font-medium text-sky-700 bg-sky-50 px-2 py-1 rounded-full whitespace-nowrap">[포장 ⭕️]</span></p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14">시간:</strong>10:00 ~ 21:00</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">전화:</strong><a href="tel:010-7372-9722" class="text-sky-600 hover:underline">010-7372-9722</a></li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">강원 동해시 일출로 151 1층 13호</span></li></ul></div></div>` },
+                { time: "18:00 ~", title: "바비큐 파티 및 저녁 식사", location: "숙소", icon: "🥩", details: `<div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm mt-1 text-sm sm:text-base text-slate-600"><p>포장해온 음식들과 바비큐 고기로 풍성한 저녁 식사!</p></div>` }
             ],
             day2: [
-                { 
-                    time: "11:00", title: "숙소 퇴실", location: "숙소", icon: "🧳", 
-                    details: `<div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm mt-1 text-sm sm:text-base text-slate-600"><p>아침 식사 후 정리 및 체크아웃 완료!</p></div>` 
-                },
-                { 
-                    time: "11:10 ~ 12:30", title: "해장 및 점심 식사", location: "다양한 플랜 중 택1", icon: "🍜", 
-                    details: `
-                        <div class="space-y-3 mt-1">
-                            <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">Plan A: 오뚜기칼국수 <span class="text-[11px] sm:text-xs font-medium text-sky-700 bg-sky-50 px-2 py-1 rounded-full whitespace-nowrap">[좌식 ⭕️]</span></p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14">메뉴:</strong>장칼국수</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">시간:</strong>07:00 ~ 18:00</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">동해시 발한로 212-1</span></li></ul></div>
-                            <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">Plan B: 홍대포 본점 <span class="text-[11px] sm:text-xs font-medium text-sky-700 bg-sky-50 px-2 py-1 rounded-full whitespace-nowrap">[좌/입식 ⭕️]</span></p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14">메뉴:</strong>해천탕</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">시간:</strong>11:00 ~ 22:00</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">동해시 감추로 97</span></li></ul></div>
-                            <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">Plan C: 화성곰치국 <span class="text-[11px] sm:text-xs font-medium text-sky-700 bg-sky-50 px-2 py-1 rounded-full whitespace-nowrap">[좌식 ⭕️]</span></p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14">메뉴:</strong>곰치국</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">시간:</strong>07:00 ~ 17:00</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">전화:</strong><a href="tel:033-532-5166" class="text-sky-600 hover:underline">033-532-5166</a></li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">동해시 일출로 175</span></li></ul></div>
-                        </div>` 
-                },
-                { 
-                    time: "12:30 ~ 13:40", title: "스카이밸리 & 해랑전망대", location: "묵호진동 일대", icon: "🚶", 
-                    details: `<div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm mt-1 text-sm sm:text-base text-slate-600"><p><strong class="text-slate-800">스카이밸리 주소:</strong> 동해시 묵호진동 2-109</p></div>` 
-                },
-                { 
-                    time: "13:40 ~ 15:00", title: "오션뷰 카페 및 마무리", location: "다양한 플랜 중 택1", icon: "☕", 
-                    details: `
-                        <div class="space-y-3 mt-1">
-                            <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">Plan A: 한결 <span class="text-[11px] sm:text-xs font-medium text-sky-700 bg-sky-50 px-2 py-1 rounded-full whitespace-nowrap">[아기의자 ⭕️]</span></p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14">시간:</strong>09:00 ~ 21:00</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">동해시 일출로 195</span></li></ul></div>
-                            <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">Plan B: 브릭베이커스 <span class="text-[11px] sm:text-xs font-medium text-sky-700 bg-sky-50 px-2 py-1 rounded-full whitespace-nowrap">[아기의자 ⭕️]</span></p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14">시간:</strong>07:00 ~ 19:00</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">동해시 일출로 191</span></li></ul></div>
-                            <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">Plan C: 투썸 어달해변점 <span class="text-[11px] sm:text-xs font-medium text-sky-700 bg-sky-50 px-2 py-1 rounded-full whitespace-nowrap">[아기의자 ⭕️]</span></p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14">시간:</strong>09:00 ~ 23:00</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">동해시 묵호동 141-14</span></li></ul></div>
-                        </div>` 
-                },
-                { 
-                    time: "15:00 ~", title: "여행 해산 및 귀가", location: "각자 자택으로", icon: "👋", 
-                    details: `<div class="bg-white p-4 sm:p-6 rounded-lg border border-slate-200 shadow-sm mt-1 text-center"><p class="font-bold text-sky-700 text-base sm:text-lg">즐거운 동해 여행 마무리! 안전하게 귀가하세요 🚗</p></div>` 
-                }
+                { time: "11:00", title: "숙소 퇴실", location: "숙소", icon: "🧳", details: `<div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm mt-1 text-sm sm:text-base text-slate-600"><p>아침 식사 후 정리 및 체크아웃 완료!</p></div>` },
+                { time: "11:10 ~ 12:30", title: "해장 및 점심 식사", location: "다양한 플랜 중 택1", icon: "🍜", details: `<div class="space-y-3 mt-1"><div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">Plan A: 오뚜기칼국수 <span class="text-[11px] sm:text-xs font-medium text-sky-700 bg-sky-50 px-2 py-1 rounded-full whitespace-nowrap">[좌식 ⭕️]</span></p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14">메뉴:</strong>장칼국수</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">시간:</strong>07:00 ~ 18:00</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">강원 동해시 발한로 212-1</span></li></ul></div><div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">Plan B: 홍대포 본점 <span class="text-[11px] sm:text-xs font-medium text-sky-700 bg-sky-50 px-2 py-1 rounded-full whitespace-nowrap">[좌/입식 ⭕️]</span></p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14">메뉴:</strong>해천탕</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">시간:</strong>11:00 ~ 22:00</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">강원 동해시 감추로 97</span></li></ul></div><div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">Plan C: 화성곰치국 <span class="text-[11px] sm:text-xs font-medium text-sky-700 bg-sky-50 px-2 py-1 rounded-full whitespace-nowrap">[좌식 ⭕️]</span></p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14">메뉴:</strong>곰치국</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">시간:</strong>07:00 ~ 17:00</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14">전화:</strong><a href="tel:033-532-5166" class="text-sky-600 hover:underline">033-532-5166</a></li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">강원 동해시 일출로 175</span></li></ul></div></div>` },
+                { time: "12:30 ~ 13:40", title: "스카이밸리 & 해랑전망대", location: "묵호진동 일대", icon: "🚶", details: `<div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm mt-1 text-sm sm:text-base text-slate-600"><p><strong class="text-slate-800">스카이밸리 주소:</strong> 강원 동해시 하늘로 1</p></div>` },
+                { time: "13:40 ~ 15:00", title: "오션뷰 카페 및 마무리", location: "다양한 플랜 중 택1", icon: "☕", details: `<div class="space-y-3 mt-1"><div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">Plan A: 한결 <span class="text-[11px] sm:text-xs font-medium text-sky-700 bg-sky-50 px-2 py-1 rounded-full whitespace-nowrap">[아기의자 ⭕️]</span></p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14">시간:</strong>09:00 ~ 21:00</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">강원 동해시 일출로 195</span></li></ul></div><div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">Plan B: 브릭베이커스 <span class="text-[11px] sm:text-xs font-medium text-sky-700 bg-sky-50 px-2 py-1 rounded-full whitespace-nowrap">[아기의자 ⭕️]</span></p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14">시간:</strong>07:00 ~ 19:00</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">강원 동해시 일출로 191</span></li></ul></div><div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">Plan C: 투썸 어달해변점 <span class="text-[11px] sm:text-xs font-medium text-sky-700 bg-sky-50 px-2 py-1 rounded-full whitespace-nowrap">[아기의자 ⭕️]</span></p><ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5"><li><strong class="text-slate-800 inline-block w-12 sm:w-14">시간:</strong>09:00 ~ 23:00</li><li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">강원 동해시 묵호동 141-14</span></li></ul></div></div>` },
+                { time: "15:00 ~", title: "여행 해산 및 귀가", location: "각자 자택으로", icon: "👋", details: `<div class="bg-white p-4 sm:p-6 rounded-lg border border-slate-200 shadow-sm mt-1 text-center"><p class="font-bold text-sky-700 text-base sm:text-lg">즐거운 동해 여행 마무리! 안전하게 귀가하세요 🚗</p></div>` }
             ]
         };
 
@@ -243,23 +265,104 @@
             baby: ["이유식(아린 엄마)", "기저귀", "손수건", "젖병", "분유", "비판텐", "물티슈", "옷", "면봉", "젖병 포트(아린 엄마)", "유모차", "아기용 상비약", "쪽쪽이"]
         };
 
+        /* ─────────────────────────────────────────
+           지도 장소 데이터
+           category: stay | food | cafe | beach | market | view
+        ───────────────────────────────────────── */
         const mapPlaces = [
-            { title: '숙소 (월소택지길 8)', address: '강원특별자치도 동해시 월소택지길 8' },
-            { title: '호재퀴진 / 온다 / 대게', address: '강원특별자치도 동해시 일출로 151' },
-            { title: '어달해수욕장', address: '강원특별자치도 동해시 묵호동 13-1' },
-            { title: '사랑드림마트', address: '강원특별자치도 동해시 평릉길 60-1' },
-            { title: '행복드림마트', address: '강원특별자치도 동해시 중앙로 145' },
-            { title: '파닭김밥', address: '강원특별자치도 동해시 시장안길 22' },
-            { title: '묵호김밥', address: '강원특별자치도 동해시 일출로 9-1' },
-            { title: '문어닭강정', address: '강원특별자치도 동해시 일출로 61' },
-            { title: '오뚜기칼국수', address: '강원특별자치도 동해시 발한로 212-1' },
-            { title: '도째비골 스카이밸리', address: '강원특별자치도 동해시 묵호진동 2-109' },
-            { title: '카페 한결', address: '강원특별자치도 동해시 일출로 195' },
-            { title: '홍대포 본점', address: '강원특별자치도 동해시 감추로 97' }
+            {
+                title: '숙소', subtitle: '월소택지길 8',
+                address: '강원 동해시 월소택지길 8',
+                category: 'stay', emoji: '🏠',
+                info: { hours: '입실 15:00 / 퇴실 11:00', note: '1박 2일 숙소' }
+            },
+            {
+                title: '호재퀴진 / 온다 / 대게 (삼양비취타워)', subtitle: '동해시 일출로 151',
+                address: '강원 동해시 일출로 151',
+                category: 'food', emoji: '🍽️',
+                info: { note: '호재퀴진(양식), 온다(문어우삼겹·물회), 정훈수산(대게) 등 다수 입점' }
+            },
+            {
+                title: '어달해수욕장', subtitle: '동해시 어달동',
+                address: '강원특별자치도 동해시 어달동 52-4',
+                category: 'beach', emoji: '🏖️',
+                info: { note: '수심이 얕고 파도 잔잔, 유아 동반 물놀이 최적' }
+            },
+            {
+                title: '사랑드림마트', subtitle: '동해시 평릉길 60',
+                address: '강원 동해시 평릉길 60',
+                category: 'market', emoji: '🛒',
+                info: { note: '군마트 – 신분증·가족관계증명서 필수' }
+            },
+            {
+                title: '행복드림마트', subtitle: '동해시 중앙로 145',
+                address: '강원 동해시 중앙로 145',
+                category: 'market', emoji: '🛒',
+                info: { hours: '평일 10:00~19:00 / 토 09:30~17:00', phone: '070-4251-2567', note: '군마트 – 신분증·가족관계증명서 필수' }
+            },
+            {
+                title: '파닭김밥', subtitle: '동해시 시장안길 22',
+                address: '강원 동해시 시장안길 22',
+                category: 'food', emoji: '🍱',
+                info: { hours: '10:00~18:00 (16시 이후 포장만)', phone: '010-5669-9445' }
+            },
+            {
+                title: '묵호김밥', subtitle: '동해시 일출로 9-1',
+                address: '강원 동해시 일출로 9-1',
+                category: 'food', emoji: '🍱',
+                info: { hours: '10:00~18:00', phone: '010-2225-7796', note: '포장 예약 필수' }
+            },
+            {
+                title: '문어닭강정', subtitle: '동해시 일출로 61',
+                address: '강원 동해시 일출로 61',
+                category: 'food', emoji: '🐙',
+                info: { hours: '11:00~20:00', phone: '033-531-1554' }
+            },
+            {
+                title: '오뚜기칼국수', subtitle: '동해시 발한로 212-1',
+                address: '강원 동해시 발한로 212-1',
+                category: 'food', emoji: '🍜',
+                info: { hours: '07:00~18:00', note: '장칼국수 / 좌식 ⭕️' }
+            },
+            {
+                title: '도째비골 스카이밸리', subtitle: '동해시 하늘로 1',
+                address: '강원 동해시 하늘로 1',
+                category: 'view', emoji: '🌅',
+                info: { note: '스카이밸리 + 해랑전망대 인근' }
+            },
+            {
+                title: '카페 한결', subtitle: '동해시 일출로 195',
+                address: '강원 동해시 일출로 195',
+                category: 'cafe', emoji: '☕',
+                info: { hours: '09:00~21:00', note: '아기의자 ⭕️ / 오션뷰' }
+            },
+            {
+                title: '홍대포 본점', subtitle: '동해시 감추로 97',
+                address: '강원 동해시 감추로 97',
+                category: 'food', emoji: '🍲',
+                info: { hours: '11:00~22:00', note: '해천탕 / 좌·입식 ⭕️' }
+            }
         ];
 
+        /* 카테고리별 마커 색상 */
+        const catColor = {
+            stay:   { bg: '#1D4ED8', border: '#93C5FD' },
+            food:   { bg: '#C2410C', border: '#FED7AA' },
+            cafe:   { bg: '#15803D', border: '#A7F3D0' },
+            beach:  { bg: '#0369A1', border: '#BAE6FD' },
+            market: { bg: '#7E22CE', border: '#E9D5FF' },
+            view:   { bg: '#BE123C', border: '#FECDD3' }
+        };
+
+        /* ═══════════════════════════════════════════
+           앱 로직
+        ═══════════════════════════════════════════ */
         const app = {
             mapInitialized: false,
+            kakaoMap: null,
+            allMarkers: [],   // { marker, overlay, place }
+            activeFilter: 'all',
+
             init() {
                 this.renderList('list-common', prepItems.common);
                 this.renderList('list-personal', prepItems.personal);
@@ -269,36 +372,25 @@
 
             switchTab(tabId) {
                 document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-                document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active', 'border-bottom'));
-                
+                document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
                 document.getElementById(tabId).classList.remove('hidden');
                 document.querySelector(`[data-target="${tabId}"]`).classList.add('active');
 
                 if (tabId === 'map' && !this.mapInitialized) {
-                    setTimeout(() => {
-                        this.initKakaoMap();
-                        this.mapInitialized = true;
-                    }, 100);
+                    setTimeout(() => { this.initKakaoMap(); this.mapInitialized = true; }, 100);
                 }
             },
 
             renderTimeline(day) {
                 const btn1 = document.getElementById('btn-day1');
                 const btn2 = document.getElementById('btn-day2');
-                const activeClass = "flex-1 md:flex-none px-4 py-2 sm:py-2.5 text-sm sm:text-base font-semibold rounded-md bg-white shadow-sm text-sky-700 transition-colors";
-                const inactiveClass = "flex-1 md:flex-none px-4 py-2 sm:py-2.5 text-sm sm:text-base font-semibold rounded-md text-slate-500 hover:text-slate-800 transition-colors";
-                
-                if (day === 1) {
-                    btn1.className = activeClass;
-                    btn2.className = inactiveClass;
-                } else {
-                    btn2.className = activeClass;
-                    btn1.className = inactiveClass;
-                }
+                const active   = "flex-1 md:flex-none px-4 py-2 sm:py-2.5 text-sm sm:text-base font-semibold rounded-md bg-white shadow-sm text-sky-700 transition-colors";
+                const inactive = "flex-1 md:flex-none px-4 py-2 sm:py-2.5 text-sm sm:text-base font-semibold rounded-md text-slate-500 hover:text-slate-800 transition-colors";
+                btn1.className = day === 1 ? active : inactive;
+                btn2.className = day === 2 ? active : inactive;
 
                 const container = document.getElementById('timeline-container');
                 const data = day === 1 ? scheduleData.day1 : scheduleData.day2;
-                
                 container.innerHTML = data.map((item, index) => `
                     <div class="timeline-item p-4 sm:p-6 cursor-pointer group" onclick="app.toggleTimelineDetail(${index})">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-2">
@@ -322,18 +414,13 @@
 
             toggleTimelineDetail(index) {
                 const el = document.getElementById(`detail-${index}`);
-                if (el.classList.contains('timeline-content-hidden')) {
-                    el.classList.remove('timeline-content-hidden');
-                    el.classList.add('block');
-                } else {
-                    el.classList.add('timeline-content-hidden');
-                    el.classList.remove('block');
-                }
+                el.classList.toggle('timeline-content-hidden');
+                el.classList.toggle('block');
             },
 
             renderList(containerId, items) {
                 const container = document.getElementById(containerId);
-                container.innerHTML = items.map((item, idx) => `
+                container.innerHTML = items.map(item => `
                     <li class="flex items-center gap-2.5 sm:gap-3 p-1.5 sm:p-2 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" onclick="this.querySelector('input').click()">
                         <input type="checkbox" class="w-4 h-4 sm:w-5 sm:h-5 text-sky-600 rounded border-slate-300 focus:ring-sky-500 cursor-pointer" onclick="event.stopPropagation()">
                         <span class="text-slate-700 text-sm sm:text-base font-medium select-none break-keep">${item}</span>
@@ -341,45 +428,183 @@
                 `).join('');
             },
 
+            /* ── 카카오 지도 초기화 ── */
             initKakaoMap() {
                 const mapContainer = document.getElementById('kakao-map');
-                
+
                 if (typeof kakao === 'undefined' || typeof kakao.maps === 'undefined') {
-                    mapContainer.innerHTML = '<div class="text-center text-slate-500 p-4"><p class="font-bold mb-2 text-red-500">⚠️ 카카오맵 API 로드 실패</p><p class="text-xs sm:text-sm mt-2 break-keep">1. 카카오 디벨로퍼스 사이트에서 [Web 플랫폼 도메인]에 현재 주소가 등록되어 있는지 확인해주세요.<br>2. 로컬 파일(file://)로 열었을 경우 동작하지 않을 수 있으니 로컬 서버를 띄워서 확인해주세요.</p></div>';
+                    mapContainer.innerHTML = `
+                        <div class="text-center text-slate-500 p-6">
+                            <p class="font-bold mb-2 text-red-500 text-lg">⚠️ 카카오맵 API 로드 실패</p>
+                            <p class="text-xs sm:text-sm mt-2 break-keep leading-relaxed">
+                                카카오 디벨로퍼스에서 현재 도메인을 Web 플랫폼으로 등록했는지 확인해 주세요.<br>
+                                로컬 파일(file://)로 열면 동작하지 않으니 로컬 서버를 이용해 주세요.
+                            </p>
+                        </div>`;
                     return;
                 }
 
-                mapContainer.innerHTML = ''; 
-                const mapOption = { 
-                    center: new kakao.maps.LatLng(37.5484, 129.0441),
-                    level: 7 
-                };  
-                const map = new kakao.maps.Map(mapContainer, mapOption); 
-                const geocoder = new kakao.maps.services.Geocoder();
+                mapContainer.innerHTML = '';
 
-                mapPlaces.forEach(place => {
-                    geocoder.addressSearch(place.address, function(result, status) {
+                const map = new kakao.maps.Map(mapContainer, {
+                    center: new kakao.maps.LatLng(37.5484, 129.0441),
+                    level: 7
+                });
+                this.kakaoMap = map;
+
+                const geocoder = new kakao.maps.services.Geocoder();
+                const bounds   = new kakao.maps.LatLngBounds();
+                let   resolved = 0;
+
+                mapPlaces.forEach((place, idx) => {
+                    geocoder.addressSearch(place.address, (result, status) => {
+                        resolved++;
                         if (status === kakao.maps.services.Status.OK) {
-                            const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
-                            const marker = new kakao.maps.Marker({
-                                map: map,
-                                position: coords
+                            const pos = new kakao.maps.LatLng(result[0].y, result[0].x);
+                            bounds.extend(pos);
+
+                            /* 커스텀 마커 오버레이 */
+                            const color = catColor[place.category] || catColor.food;
+                            const markerEl = document.createElement('div');
+                            markerEl.innerHTML = `
+                                <div style="
+                                    position:relative;
+                                    display:flex; flex-direction:column; align-items:center;
+                                    cursor:pointer;
+                                ">
+                                    <div style="
+                                        background:${color.bg};
+                                        border: 2.5px solid ${color.border};
+                                        color:#fff;
+                                        border-radius:50%;
+                                        width:36px; height:36px;
+                                        display:flex; align-items:center; justify-content:center;
+                                        font-size:17px;
+                                        box-shadow:0 2px 8px rgba(0,0,0,0.25);
+                                        transition: transform 0.15s;
+                                    " class="marker-pin-${idx}">${place.emoji}</div>
+                                    <div style="
+                                        width:0; height:0;
+                                        border-left:6px solid transparent;
+                                        border-right:6px solid transparent;
+                                        border-top:8px solid ${color.bg};
+                                        margin-top:-1px;
+                                    "></div>
+                                    <div style="
+                                        background:${color.bg};
+                                        color:#fff;
+                                        font-size:10px; font-weight:600;
+                                        padding:2px 6px;
+                                        border-radius:20px;
+                                        margin-top:3px;
+                                        white-space:nowrap;
+                                        max-width:90px;
+                                        overflow:hidden;
+                                        text-overflow:ellipsis;
+                                        box-shadow:0 1px 4px rgba(0,0,0,0.2);
+                                    ">${place.title}</div>
+                                </div>`;
+                            markerEl.addEventListener('click', () => {
+                                app.openPanel(place, pos);
                             });
-                            const infowindow = new kakao.maps.InfoWindow({
-                                content: `<div style="width:150px;text-align:center;padding:6px 2px;font-size:12px;font-weight:500;color:#334155;word-break:keep-all;">${place.title}</div>`
+
+                            const overlay = new kakao.maps.CustomOverlay({
+                                position: pos,
+                                content:  markerEl,
+                                yAnchor:  1.0,
+                                zIndex:   3
                             });
-                            infowindow.open(map, marker);
-                            
-                            map.setCenter(coords);
-                        } 
+                            overlay.setMap(map);
+
+                            app.allMarkers.push({ overlay, place });
+                        }
+
+                        /* 모든 지오코딩 완료 후 지도 범위 맞추기 */
+                        if (resolved === mapPlaces.length) {
+                            map.setBounds(bounds, 80); // padding 80px
+                        }
                     });
                 });
+
+                /* 지도 빈 곳 클릭 시 패널 닫기 */
+                kakao.maps.event.addListener(map, 'click', () => {
+                    app.closePanel();
+                });
+            },
+
+            /* ── 필터 ── */
+            filterMarkers(cat) {
+                this.activeFilter = cat;
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.className = 'filter-btn px-3 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-200 text-slate-600 whitespace-nowrap';
+                });
+                const activeBtn = document.getElementById('filter-' + cat);
+                if (activeBtn) activeBtn.className = 'filter-btn px-3 py-1.5 rounded-full text-xs font-semibold bg-sky-600 text-white whitespace-nowrap';
+
+                this.allMarkers.forEach(({ overlay, place }) => {
+                    overlay.setMap(cat === 'all' || place.category === cat ? this.kakaoMap : null);
+                });
+                this.closePanel();
+            },
+
+            /* ── 하단 패널 열기 ── */
+            openPanel(place, pos) {
+                const color  = catColor[place.category] || catColor.food;
+                const catLabel = { stay:'숙소', food:'식당', cafe:'카페', beach:'해변·관광', market:'마트', view:'전망대' };
+                const badgeCls = `badge-${place.category}`;
+
+                let extraRows = '';
+                if (place.info.hours) extraRows += `<div class="flex gap-2 items-start"><span class="text-slate-400 text-xs w-8 shrink-0 pt-0.5">시간</span><span class="text-slate-700 text-sm font-medium break-keep">${place.info.hours}</span></div>`;
+                if (place.info.phone) extraRows += `<div class="flex gap-2 items-center"><span class="text-slate-400 text-xs w-8 shrink-0">전화</span><a href="tel:${place.info.phone}" class="text-sky-600 text-sm font-semibold hover:underline">${place.info.phone}</a></div>`;
+                if (place.info.note)  extraRows += `<div class="flex gap-2 items-start"><span class="text-slate-400 text-xs w-8 shrink-0 pt-0.5">메모</span><span class="text-slate-600 text-sm break-keep">${place.info.note}</span></div>`;
+
+                document.getElementById('place-panel-content').innerHTML = `
+                    <div class="flex items-start justify-between gap-2 mb-3">
+                        <div>
+                            <span class="inline-block text-[11px] font-bold px-2 py-0.5 rounded-full mb-1.5 ${badgeCls}">${catLabel[place.category] || place.category}</span>
+                            <h3 class="text-lg font-bold text-slate-900 leading-tight break-keep">${place.emoji} ${place.title}</h3>
+                            <p class="text-sm text-slate-500 mt-0.5 break-keep">${place.subtitle}</p>
+                        </div>
+                    </div>
+                    <div class="border-t border-slate-100 pt-3 space-y-2.5">
+                        <div class="flex gap-2 items-start">
+                            <span class="text-slate-400 text-xs w-8 shrink-0 pt-0.5">주소</span>
+                            <span class="text-slate-700 text-sm font-medium break-keep">${place.address}</span>
+                        </div>
+                        ${extraRows}
+                    </div>
+                    <div class="mt-4 flex gap-2">
+                        <a href="https://map.kakao.com/link/search/${encodeURIComponent(place.title)}" 
+                           target="_blank" rel="noopener"
+                           class="flex-1 text-center py-2.5 rounded-xl text-sm font-bold text-white"
+                           style="background:${color.bg}">
+                           카카오맵에서 보기
+                        </a>
+                        ${place.info.phone ? `<a href="tel:${place.info.phone}" class="flex items-center justify-center px-4 rounded-xl text-sm font-bold border border-slate-200 text-slate-700 gap-1">📞 전화</a>` : ''}
+                    </div>
+                `;
+
+                /* 지도 중심을 마커 위쪽으로 약간 이동 */
+                if (this.kakaoMap && pos) {
+                    const proj = this.kakaoMap.getProjection();
+                    const point = proj.containerPointFromCoords(pos);
+                    const mapHeight = this.kakaoMap.getNode ? 0 : 0;
+                    const newPos = proj.coordsFromContainerPoint(
+                        new kakao.maps.Point(point.x, point.y + 80)
+                    );
+                    this.kakaoMap.panTo(newPos);
+                }
+
+                document.getElementById('place-panel').classList.add('open');
+            },
+
+            /* ── 하단 패널 닫기 ── */
+            closePanel() {
+                document.getElementById('place-panel').classList.remove('open');
             }
         };
 
-        document.addEventListener('DOMContentLoaded', () => {
-            app.init();
-        });
+        document.addEventListener('DOMContentLoaded', () => { app.init(); });
     </script>
 </body>
 </html>
