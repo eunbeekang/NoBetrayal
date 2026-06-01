@@ -158,19 +158,33 @@
 
         <!-- 지도 보기 -->
         <section id="map" class="tab-content hidden">
-            <div class="mb-5 sm:mb-6">
-                <h2 class="text-xl sm:text-2xl font-bold text-slate-800 mb-2">동해 여행 지도</h2>
-                <p class="text-sm sm:text-base text-slate-600 break-keep">마커를 탭하면 장소 상세정보를 확인할 수 있어요.</p>
+            <div class="mb-4 sm:mb-5">
+                <h2 class="text-xl sm:text-2xl font-bold text-slate-800 mb-1">동해 여행 지도</h2>
+                <p class="text-sm text-slate-500 break-keep">마커를 탭하면 장소 상세정보를 볼 수 있어요.</p>
             </div>
 
-            <!-- 카테고리 필터 -->
-            <div class="flex gap-2 mb-3 overflow-x-auto scrollbar-hide pb-1">
-                <button onclick="app.filterMarkers('all')" id="filter-all" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold bg-sky-600 text-white whitespace-nowrap">전체</button>
-                <button onclick="app.filterMarkers('stay')" id="filter-stay" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-200 text-slate-600 whitespace-nowrap">🏠 숙소</button>
-                <button onclick="app.filterMarkers('food')" id="filter-food" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-200 text-slate-600 whitespace-nowrap">🍽️ 식당</button>
-                <button onclick="app.filterMarkers('cafe')" id="filter-cafe" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-200 text-slate-600 whitespace-nowrap">☕ 카페</button>
-                <button onclick="app.filterMarkers('beach')" id="filter-beach" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-200 text-slate-600 whitespace-nowrap">🏖️ 해변/관광</button>
-                <button onclick="app.filterMarkers('market')" id="filter-market" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-200 text-slate-600 whitespace-nowrap">🛒 마트</button>
+            <!-- 일차 필터 탭 -->
+            <div class="flex gap-2 mb-3">
+                <button onclick="app.filterDay('all')" id="filter-all"
+                    class="day-filter-btn flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-bold border-2 border-orange-400 bg-orange-400 text-white transition-all">
+                    🗓️ 전체
+                </button>
+                <button onclick="app.filterDay('day1')" id="filter-day1"
+                    class="day-filter-btn flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-bold border-2 border-slate-200 bg-white text-slate-500 transition-all">
+                    ☀️ 1일차 토
+                </button>
+                <button onclick="app.filterDay('day2')" id="filter-day2"
+                    class="day-filter-btn flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-bold border-2 border-slate-200 bg-white text-slate-500 transition-all">
+                    🌤️ 2일차 일
+                </button>
+            </div>
+
+            <!-- 범례 -->
+            <div class="flex gap-4 mb-3 flex-wrap items-center">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide">범례</span>
+                <div class="flex items-center gap-1.5 text-xs font-medium text-slate-700"><span style="background:#F97316;width:12px;height:12px;border-radius:50%;display:inline-block;"></span>1일차 (토)</div>
+                <div class="flex items-center gap-1.5 text-xs font-medium text-slate-700"><span style="background:#8B5CF6;width:12px;height:12px;border-radius:50%;display:inline-block;"></span>2일차 (일)</div>
+                <div class="flex items-center gap-1.5 text-xs font-medium text-slate-700"><span style="background:#1D4ED8;width:12px;height:12px;border-radius:50%;display:inline-block;"></span>숙소 (공통)</div>
             </div>
 
             <div class="bg-white p-2 rounded-xl shadow-sm border border-slate-100">
@@ -224,7 +238,7 @@
                     </div>
                     <div class="bg-white p-4 rounded-lg shadow-sm">
                         <p class="text-[11px] sm:text-xs font-bold text-sky-600 uppercase tracking-wide mb-1">운전</p>
-                        <p class="font-medium text-sm sm:text-base text-slate-800">박경흠, 김재우, 김용성, 이영훈</p>
+                        <p class="font-medium text-sm sm:text-base text-slate-800">김재우, 김용성, 설정은, 이영훈</p>
                         <p class="text-xs sm:text-sm text-slate-500 mt-1">차량 운행</p>
                     </div>
                     <div class="bg-white p-4 rounded-lg shadow-sm">
@@ -267,91 +281,48 @@
 
         /* ─────────────────────────────────────────
            지도 장소 데이터
-           category: stay | food | cafe | beach | market | view
+           searchQuery: 카카오 키워드 검색어 (주소보다 훨씬 정확)
+           day: 'both' | 'day1' | 'day2'
         ───────────────────────────────────────── */
         const mapPlaces = [
-            {
-                title: '숙소', subtitle: '월소택지길 8',
-                address: '강원 동해시 월소택지길 8',
-                category: 'stay', emoji: '🏠',
-                info: { hours: '입실 15:00 / 퇴실 11:00', note: '1박 2일 숙소' }
-            },
-            {
-                title: '호재퀴진 / 온다 / 대게 (삼양비취타워)', subtitle: '동해시 일출로 151',
-                address: '강원 동해시 일출로 151',
-                category: 'food', emoji: '🍽️',
-                info: { note: '호재퀴진(양식), 온다(문어우삼겹·물회), 정훈수산(대게) 등 다수 입점' }
-            },
-            {
-                title: '어달해수욕장', subtitle: '동해시 어달동',
-                address: '강원특별자치도 동해시 어달동 52-4',
-                category: 'beach', emoji: '🏖️',
-                info: { note: '수심이 얕고 파도 잔잔, 유아 동반 물놀이 최적' }
-            },
-            {
-                title: '사랑드림마트', subtitle: '동해시 평릉길 60',
-                address: '강원 동해시 평릉길 60',
-                category: 'market', emoji: '🛒',
-                info: { note: '군마트 – 신분증·가족관계증명서 필수' }
-            },
-            {
-                title: '행복드림마트', subtitle: '동해시 중앙로 145',
-                address: '강원 동해시 중앙로 145',
-                category: 'market', emoji: '🛒',
-                info: { hours: '평일 10:00~19:00 / 토 09:30~17:00', phone: '070-4251-2567', note: '군마트 – 신분증·가족관계증명서 필수' }
-            },
-            {
-                title: '파닭김밥', subtitle: '동해시 시장안길 22',
-                address: '강원 동해시 시장안길 22',
-                category: 'food', emoji: '🍱',
-                info: { hours: '10:00~18:00 (16시 이후 포장만)', phone: '010-5669-9445' }
-            },
-            {
-                title: '묵호김밥', subtitle: '동해시 일출로 9-1',
-                address: '강원 동해시 일출로 9-1',
-                category: 'food', emoji: '🍱',
-                info: { hours: '10:00~18:00', phone: '010-2225-7796', note: '포장 예약 필수' }
-            },
-            {
-                title: '문어닭강정', subtitle: '동해시 일출로 61',
-                address: '강원 동해시 일출로 61',
-                category: 'food', emoji: '🐙',
-                info: { hours: '11:00~20:00', phone: '033-531-1554' }
-            },
-            {
-                title: '오뚜기칼국수', subtitle: '동해시 발한로 212-1',
-                address: '강원 동해시 발한로 212-1',
-                category: 'food', emoji: '🍜',
-                info: { hours: '07:00~18:00', note: '장칼국수 / 좌식 ⭕️' }
-            },
-            {
-                title: '도째비골 스카이밸리', subtitle: '동해시 하늘로 1',
-                address: '강원 동해시 하늘로 1',
-                category: 'view', emoji: '🌅',
-                info: { note: '스카이밸리 + 해랑전망대 인근' }
-            },
-            {
-                title: '카페 한결', subtitle: '동해시 일출로 195',
-                address: '강원 동해시 일출로 195',
-                category: 'cafe', emoji: '☕',
-                info: { hours: '09:00~21:00', note: '아기의자 ⭕️ / 오션뷰' }
-            },
-            {
-                title: '홍대포 본점', subtitle: '동해시 감추로 97',
-                address: '강원 동해시 감추로 97',
-                category: 'food', emoji: '🍲',
-                info: { hours: '11:00~22:00', note: '해천탕 / 좌·입식 ⭕️' }
-            }
+            // 공통
+            { title:'숙소 (월소택지길 8)', subtitle:'동해시 월소택지길 8', searchQuery:'강원 동해시 월소택지길 8', day:'both', emoji:'🏠', info:{ hours:'입실 15:00 / 퇴실 11:00', note:'1박 2일 숙소' } },
+
+            // 1일차 점심
+            { title:'호재퀴진', subtitle:'동해시 일출로 151', searchQuery:'호재퀴진 동해', day:'day1', emoji:'🍝', info:{ hours:'09:30~17:00', phone:'070-7557-7293', note:'양식(파스타) / 아기의자 ⭕️' } },
+            { title:'동북횟집', subtitle:'동해시 일출로 95', searchQuery:'동북횟집 동해 묵호', day:'day1', emoji:'🐟', info:{ hours:'08:30~20:00', phone:'033-532-7156', note:'물회·회덮밥 / 좌식룸 ⭕️' } },
+            { title:'거동탕수육', subtitle:'동해시 일출로 83', searchQuery:'거동탕수육 동해', day:'day1', emoji:'🦑', info:{ hours:'11:00~19:30', phone:'033-532-4778', note:'문어탕수육·짬뽕 / 아기의자 ⭕️' } },
+            { title:'온다 묵호본점', subtitle:'동해시 일출로 151', searchQuery:'온다 묵호본점', day:'day1', emoji:'🐙', info:{ hours:'10:30~20:30', phone:'0507-1494-4863', note:'문어우삼겹·물회 / 아기의자 ⭕️' } },
+
+            // 1일차 해변·마트
+            { title:'어달해수욕장', subtitle:'동해시 어달동', searchQuery:'어달해수욕장', day:'day1', emoji:'🏖️', info:{ note:'수심이 얕고 파도 잔잔 / 유아 물놀이 최적' } },
+            { title:'사랑드림마트', subtitle:'동해시 평릉길 60', searchQuery:'사랑드림마트 동해', day:'day1', emoji:'🛒', info:{ note:'군마트 – 신분증·가족관계증명서 필수' } },
+            { title:'행복드림마트', subtitle:'동해시 중앙로 145', searchQuery:'행복드림마트 동해', day:'day1', emoji:'🛒', info:{ hours:'평일 10:00~19:00 / 토 09:30~17:00', phone:'070-4251-2567', note:'군마트 – 신분증·가족관계증명서 필수' } },
+
+            // 1일차 저녁 포장
+            { title:'파닭김밥', subtitle:'동해시 시장안길 22', searchQuery:'파닭김밥 동해 묵호', day:'day1', emoji:'🍱', info:{ hours:'10:00~18:00 (16시 이후 포장만)', phone:'010-5669-9445' } },
+            { title:'묵호김밥', subtitle:'동해시 일출로 9-1', searchQuery:'묵호김밥 동해', day:'day1', emoji:'🍱', info:{ hours:'10:00~18:00', phone:'010-2225-7796', note:'포장 예약 필수' } },
+            { title:'경상도횟집', subtitle:'동해시 일출로 151', searchQuery:'경상도횟집 동해 묵호', day:'day1', emoji:'🐠', info:{ hours:'10:00~24:00', phone:'033-534-9526' } },
+            { title:'문어닭강정', subtitle:'동해시 일출로 61', searchQuery:'문어닭강정 동해', day:'day1', emoji:'🐙', info:{ hours:'11:00~20:00', phone:'033-531-1554' } },
+            { title:'정훈수산 (대게)', subtitle:'동해시 일출로 151', searchQuery:'정훈수산 대게 동해', day:'day1', emoji:'🦀', info:{ hours:'10:00~21:00', phone:'010-7372-9722' } },
+
+            // 2일차 점심
+            { title:'오뚜기칼국수', subtitle:'동해시 발한로 212-1', searchQuery:'오뚜기칼국수 동해', day:'day2', emoji:'🍜', info:{ hours:'07:00~18:00', note:'장칼국수 / 좌식 ⭕️' } },
+            { title:'홍대포 본점', subtitle:'동해시 감추로 97', searchQuery:'홍대포 동해 감추로', day:'day2', emoji:'🍲', info:{ hours:'11:00~22:00', note:'해천탕 / 좌·입식 ⭕️' } },
+            { title:'화성곰치국', subtitle:'동해시 일출로 175', searchQuery:'화성곰치국 동해', day:'day2', emoji:'🐡', info:{ hours:'07:00~17:00', phone:'033-532-5166', note:'곰치국 / 좌식 ⭕️' } },
+
+            // 2일차 관광·카페
+            { title:'도째비골 스카이밸리', subtitle:'동해시 하늘로 1', searchQuery:'도째비골 스카이밸리', day:'day2', emoji:'🌅', info:{ note:'스카이밸리 + 해랑전망대' } },
+            { title:'카페 한결', subtitle:'동해시 일출로 195', searchQuery:'카페한결 동해 묵호', day:'day2', emoji:'☕', info:{ hours:'09:00~21:00', note:'아기의자 ⭕️ / 오션뷰' } },
+            { title:'브릭베이커스', subtitle:'동해시 일출로 191', searchQuery:'브릭베이커스 동해', day:'day2', emoji:'☕', info:{ hours:'07:00~19:00', note:'아기의자 ⭕️' } },
+            { title:'투썸플레이스 어달해변점', subtitle:'동해시 묵호동', searchQuery:'투썸플레이스 어달해변 동해', day:'day2', emoji:'☕', info:{ hours:'09:00~23:00', note:'아기의자 ⭕️ / 어달해변 인근' } },
         ];
 
-        /* 카테고리별 마커 색상 */
-        const catColor = {
-            stay:   { bg: '#1D4ED8', border: '#93C5FD' },
-            food:   { bg: '#C2410C', border: '#FED7AA' },
-            cafe:   { bg: '#15803D', border: '#A7F3D0' },
-            beach:  { bg: '#0369A1', border: '#BAE6FD' },
-            market: { bg: '#7E22CE', border: '#E9D5FF' },
-            view:   { bg: '#BE123C', border: '#FECDD3' }
+        /* 일차별 마커 색상 */
+        const dayColor = {
+            day1:  { bg: '#F97316', border: '#FED7AA', label: '1일차' },  // 주황
+            day2:  { bg: '#8B5CF6', border: '#DDD6FE', label: '2일차' },  // 보라
+            both:  { bg: '#1D4ED8', border: '#93C5FD', label: '공통' }    // 파랑 (숙소)
         };
 
         /* ═══════════════════════════════════════════
@@ -360,8 +331,8 @@
         const app = {
             mapInitialized: false,
             kakaoMap: null,
-            allMarkers: [],   // { marker, overlay, place }
-            activeFilter: 'all',
+            allMarkers: [],   // { overlay, place, pos }
+            activeDay: 'all',
 
             init() {
                 this.renderList('list-common', prepItems.common);
@@ -428,6 +399,34 @@
                 `).join('');
             },
 
+            /* ── 일차 필터 ── */
+            filterDay(day) {
+                this.activeDay = day;
+                const colMap = { all:'#F97316', day1:'#F97316', day2:'#8B5CF6' };
+                ['all','day1','day2'].forEach(d => {
+                    const btn = document.getElementById('filter-' + d);
+                    if (!btn) return;
+                    if (d === day) {
+                        btn.style.background  = colMap[day];
+                        btn.style.borderColor = colMap[day];
+                        btn.style.color = '#fff';
+                    } else {
+                        btn.style.background  = '#fff';
+                        btn.style.borderColor = '#e2e8f0';
+                        btn.style.color = '#64748b';
+                    }
+                });
+                const bounds = new kakao.maps.LatLngBounds();
+                let visible = 0;
+                this.allMarkers.forEach(({ overlay, place, pos }) => {
+                    const show = day === 'all' || place.day === day || place.day === 'both';
+                    overlay.setMap(show ? this.kakaoMap : null);
+                    if (show) { bounds.extend(pos); visible++; }
+                });
+                if (visible > 0) this.kakaoMap.setBounds(bounds, 80);
+                this.closePanel();
+            },
+
             /* ── 카카오 지도 초기화 ── */
             initKakaoMap() {
                 const mapContainer = document.getElementById('kakao-map');
@@ -437,131 +436,86 @@
                         <div class="text-center text-slate-500 p-6">
                             <p class="font-bold mb-2 text-red-500 text-lg">⚠️ 카카오맵 API 로드 실패</p>
                             <p class="text-xs sm:text-sm mt-2 break-keep leading-relaxed">
-                                카카오 디벨로퍼스에서 현재 도메인을 Web 플랫폼으로 등록했는지 확인해 주세요.<br>
-                                로컬 파일(file://)로 열면 동작하지 않으니 로컬 서버를 이용해 주세요.
+                                카카오 디벨로퍼스에서 현재 도메인을 Web 플랫폼으로 등록했는지 확인해 주세요.
                             </p>
                         </div>`;
                     return;
                 }
 
                 mapContainer.innerHTML = '';
-
                 const map = new kakao.maps.Map(mapContainer, {
                     center: new kakao.maps.LatLng(37.5484, 129.0441),
                     level: 7
                 });
                 this.kakaoMap = map;
 
-                const geocoder = new kakao.maps.services.Geocoder();
-                const bounds   = new kakao.maps.LatLngBounds();
-                let   resolved = 0;
+                /* 카카오 키워드 검색 API – 주소 지오코딩보다 훨씬 정확 */
+                const ps     = new kakao.maps.services.Places();
+                const bounds = new kakao.maps.LatLngBounds();
+                let pending  = mapPlaces.length;
+                let resolved = 0;
 
-                mapPlaces.forEach((place, idx) => {
-                    geocoder.addressSearch(place.address, (result, status) => {
-                        resolved++;
-                        if (status === kakao.maps.services.Status.OK) {
-                            const pos = new kakao.maps.LatLng(result[0].y, result[0].x);
-                            bounds.extend(pos);
+                const tryFitBounds = () => {
+                    resolved++;
+                    if (resolved >= pending && resolved > 0) {
+                        map.setBounds(bounds, 80);
+                    }
+                };
 
-                            /* 커스텀 마커 오버레이 */
-                            const color = catColor[place.category] || catColor.food;
-                            const markerEl = document.createElement('div');
-                            markerEl.innerHTML = `
-                                <div style="
-                                    position:relative;
-                                    display:flex; flex-direction:column; align-items:center;
-                                    cursor:pointer;
-                                ">
-                                    <div style="
-                                        background:${color.bg};
-                                        border: 2.5px solid ${color.border};
-                                        color:#fff;
-                                        border-radius:50%;
-                                        width:36px; height:36px;
-                                        display:flex; align-items:center; justify-content:center;
-                                        font-size:17px;
-                                        box-shadow:0 2px 8px rgba(0,0,0,0.25);
-                                        transition: transform 0.15s;
-                                    " class="marker-pin-${idx}">${place.emoji}</div>
-                                    <div style="
-                                        width:0; height:0;
-                                        border-left:6px solid transparent;
-                                        border-right:6px solid transparent;
-                                        border-top:8px solid ${color.bg};
-                                        margin-top:-1px;
-                                    "></div>
-                                    <div style="
-                                        background:${color.bg};
-                                        color:#fff;
-                                        font-size:10px; font-weight:600;
-                                        padding:2px 6px;
-                                        border-radius:20px;
-                                        margin-top:3px;
-                                        white-space:nowrap;
-                                        max-width:90px;
-                                        overflow:hidden;
-                                        text-overflow:ellipsis;
-                                        box-shadow:0 1px 4px rgba(0,0,0,0.2);
-                                    ">${place.title}</div>
-                                </div>`;
-                            markerEl.addEventListener('click', () => {
-                                app.openPanel(place, pos);
-                            });
+                const addOverlay = (place, pos) => {
+                    const col = dayColor[place.day] || dayColor.day1;
+                    const idx = app.allMarkers.length;
+                    const html = `
+                        <div onclick="window.__mapClick(${idx})" style="display:flex;flex-direction:column;align-items:center;cursor:pointer;user-select:none;">
+                            <div style="background:${col.bg};border:2.5px solid ${col.border};color:#fff;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 10px rgba(0,0,0,0.28);">${place.emoji}</div>
+                            <div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:9px solid ${col.bg};margin-top:-1px;"></div>
+                            <div style="background:${col.bg};color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;margin-top:3px;white-space:nowrap;max-width:90px;overflow:hidden;text-overflow:ellipsis;box-shadow:0 1px 4px rgba(0,0,0,0.22);">${place.title}</div>
+                        </div>`;
+                    const overlay = new kakao.maps.CustomOverlay({ position:pos, content:html, yAnchor:1.0, zIndex:3 });
+                    overlay.setMap(map);
+                    bounds.extend(pos);
+                    app.allMarkers.push({ overlay, place, pos });
+                    tryFitBounds();
+                };
 
-                            const overlay = new kakao.maps.CustomOverlay({
-                                position: pos,
-                                content:  markerEl,
-                                yAnchor:  1.0,
-                                zIndex:   3
-                            });
-                            overlay.setMap(map);
-
-                            app.allMarkers.push({ overlay, place });
+                mapPlaces.forEach(place => {
+                    /* 키워드 검색: 동해시 반경 10km 내에서 장소명으로 정확히 찾기 */
+                    ps.keywordSearch(place.searchQuery, (data, status) => {
+                        if (status === kakao.maps.services.Status.OK && data.length > 0) {
+                            addOverlay(place, new kakao.maps.LatLng(data[0].y, data[0].x));
+                        } else {
+                            tryFitBounds(); // 검색 실패해도 카운트
                         }
-
-                        /* 모든 지오코딩 완료 후 지도 범위 맞추기 */
-                        if (resolved === mapPlaces.length) {
-                            map.setBounds(bounds, 80); // padding 80px
-                        }
+                    }, {
+                        location: new kakao.maps.LatLng(37.5484, 129.0441), // 동해시 중심
+                        radius: 15000  // 15km 반경
                     });
                 });
 
-                /* 지도 빈 곳 클릭 시 패널 닫기 */
-                kakao.maps.event.addListener(map, 'click', () => {
-                    app.closePanel();
-                });
-            },
-
-            /* ── 필터 ── */
-            filterMarkers(cat) {
-                this.activeFilter = cat;
-                document.querySelectorAll('.filter-btn').forEach(btn => {
-                    btn.className = 'filter-btn px-3 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-200 text-slate-600 whitespace-nowrap';
-                });
-                const activeBtn = document.getElementById('filter-' + cat);
-                if (activeBtn) activeBtn.className = 'filter-btn px-3 py-1.5 rounded-full text-xs font-semibold bg-sky-600 text-white whitespace-nowrap';
-
-                this.allMarkers.forEach(({ overlay, place }) => {
-                    overlay.setMap(cat === 'all' || place.category === cat ? this.kakaoMap : null);
-                });
-                this.closePanel();
+                window.__mapClick = (idx) => {
+                    const item = app.allMarkers[idx];
+                    if (item) app.openPanel(item.place, item.pos);
+                };
+                kakao.maps.event.addListener(map, 'click', () => app.closePanel());
             },
 
             /* ── 하단 패널 열기 ── */
             openPanel(place, pos) {
-                const color  = catColor[place.category] || catColor.food;
-                const catLabel = { stay:'숙소', food:'식당', cafe:'카페', beach:'해변·관광', market:'마트', view:'전망대' };
-                const badgeCls = `badge-${place.category}`;
+                const col = dayColor[place.day] || dayColor.day1;
+                const dayLabel = { both:'숙소(공통)', day1:'1일차 (토)', day2:'2일차 (일)' };
+                const dayBadgeStyle = `background:${col.bg}20;color:${col.bg};`;
 
                 let extraRows = '';
                 if (place.info.hours) extraRows += `<div class="flex gap-2 items-start"><span class="text-slate-400 text-xs w-8 shrink-0 pt-0.5">시간</span><span class="text-slate-700 text-sm font-medium break-keep">${place.info.hours}</span></div>`;
                 if (place.info.phone) extraRows += `<div class="flex gap-2 items-center"><span class="text-slate-400 text-xs w-8 shrink-0">전화</span><a href="tel:${place.info.phone}" class="text-sky-600 text-sm font-semibold hover:underline">${place.info.phone}</a></div>`;
                 if (place.info.note)  extraRows += `<div class="flex gap-2 items-start"><span class="text-slate-400 text-xs w-8 shrink-0 pt-0.5">메모</span><span class="text-slate-600 text-sm break-keep">${place.info.note}</span></div>`;
 
+                const addrLine = place.address || (place.latlng ? '좌표로 등록된 장소' : '');
+
                 document.getElementById('place-panel-content').innerHTML = `
-                    <div class="flex items-start justify-between gap-2 mb-3">
-                        <div>
-                            <span class="inline-block text-[11px] font-bold px-2 py-0.5 rounded-full mb-1.5 ${badgeCls}">${catLabel[place.category] || place.category}</span>
+                    <div class="flex items-start gap-2 mb-3">
+                        <div class="flex-1">
+                            <span style="${dayBadgeStyle}" class="inline-block text-[11px] font-bold px-2.5 py-0.5 rounded-full mb-1.5">${dayLabel[place.day] || ''}</span>
                             <h3 class="text-lg font-bold text-slate-900 leading-tight break-keep">${place.emoji} ${place.title}</h3>
                             <p class="text-sm text-slate-500 mt-0.5 break-keep">${place.subtitle}</p>
                         </div>
@@ -569,32 +523,27 @@
                     <div class="border-t border-slate-100 pt-3 space-y-2.5">
                         <div class="flex gap-2 items-start">
                             <span class="text-slate-400 text-xs w-8 shrink-0 pt-0.5">주소</span>
-                            <span class="text-slate-700 text-sm font-medium break-keep">${place.address}</span>
+                            <span class="text-slate-700 text-sm font-medium break-keep">${addrLine}</span>
                         </div>
                         ${extraRows}
                     </div>
                     <div class="mt-4 flex gap-2">
-                        <a href="https://map.kakao.com/link/search/${encodeURIComponent(place.title)}" 
+                        <a href="https://map.kakao.com/link/search/${encodeURIComponent(place.title)}"
                            target="_blank" rel="noopener"
                            class="flex-1 text-center py-2.5 rounded-xl text-sm font-bold text-white"
-                           style="background:${color.bg}">
+                           style="background:${col.bg};">
                            카카오맵에서 보기
                         </a>
-                        ${place.info.phone ? `<a href="tel:${place.info.phone}" class="flex items-center justify-center px-4 rounded-xl text-sm font-bold border border-slate-200 text-slate-700 gap-1">📞 전화</a>` : ''}
+                        ${place.info.phone ? `<a href="tel:${place.info.phone}" class="flex items-center justify-center px-4 rounded-xl text-sm font-bold border border-slate-200 text-slate-700">📞 전화</a>` : ''}
                     </div>
                 `;
 
-                /* 지도 중심을 마커 위쪽으로 약간 이동 */
                 if (this.kakaoMap && pos) {
-                    const proj = this.kakaoMap.getProjection();
+                    const proj  = this.kakaoMap.getProjection();
                     const point = proj.containerPointFromCoords(pos);
-                    const mapHeight = this.kakaoMap.getNode ? 0 : 0;
-                    const newPos = proj.coordsFromContainerPoint(
-                        new kakao.maps.Point(point.x, point.y + 80)
-                    );
+                    const newPos = proj.coordsFromContainerPoint(new kakao.maps.Point(point.x, point.y + 80));
                     this.kakaoMap.panTo(newPos);
                 }
-
                 document.getElementById('place-panel').classList.add('open');
             },
 
