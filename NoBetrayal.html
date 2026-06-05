@@ -404,7 +404,7 @@
   </div>
 
   <!-- 오른쪽: 저녁 포장 (홍예슬조) -->
-  <div class="col-pickup">
+  <div class="col-pickup" style="display:flex;flex-direction:column;gap:0.75rem;">
     <div class="border border-pink-200 rounded-lg overflow-hidden">
       <div class="bg-pink-50 px-4 py-2.5">
         <p class="text-pink-800 font-bold text-sm sm:text-base break-keep">🍱 저녁 포장 — 홍예슬조 (김재우, 홍예슬)</p>
@@ -427,14 +427,6 @@
             <li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">강원 동해시 일출로 9-1 1층</span></li>
           </ul>
         </a>
-        <a href="https://map.kakao.com/link/search/경상도횟집 동해 묵호" target="_blank" rel="noopener" class="block bg-white p-4 rounded-lg border border-slate-200 shadow-sm hover:border-sky-300 hover:shadow-md transition-all">
-          <p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">③ 경상도횟집 <span class="text-[11px] sm:text-xs font-medium text-sky-700 bg-sky-50 px-2 py-1 rounded-full whitespace-nowrap">[포장]</span><span class="text-[11px] sm:text-xs font-medium text-slate-400 ml-auto">지도 보기 →</span></p>
-          <ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5">
-            <li><strong class="text-slate-800 inline-block w-12 sm:w-14">시간:</strong>10:00 ~ 24:00</li>
-            <li><strong class="text-slate-800 inline-block w-12 sm:w-14">전화:</strong><span class="text-sky-600">033-534-9526</span></li>
-            <li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">강원 동해시 일출로 151 19호</span></li>
-          </ul>
-        </a>
         <a href="https://map.kakao.com/link/search/문어닭강정 동해" target="_blank" rel="noopener" class="block bg-white p-4 rounded-lg border border-slate-200 shadow-sm hover:border-sky-300 hover:shadow-md transition-all">
           <p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">④ 문어닭강정 <span class="text-[11px] sm:text-xs font-medium text-sky-700 bg-sky-50 px-2 py-1 rounded-full whitespace-nowrap">[포장]</span><span class="text-[11px] sm:text-xs font-medium text-slate-400 ml-auto">지도 보기 →</span></p>
           <ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5">
@@ -443,6 +435,31 @@
             <li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">강원 동해시 일출로 61</span></li>
           </ul>
         </a>
+      </div>
+    </div>
+    <!-- 경상도횟집 배달주문 -->
+    <div class="border border-pink-200 rounded-lg overflow-hidden">
+      <div class="bg-pink-50 px-4 py-2.5">
+        <p class="text-pink-800 font-bold text-sm sm:text-base break-keep">🐠 배달주문 — 경상도횟집</p>
+        <p class="text-pink-600 text-xs mt-0.5 font-medium">묵호항 일대</p>
+      </div>
+      <div class="p-4 space-y-3">
+        <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+          <p class="font-bold text-base sm:text-lg text-slate-800 flex flex-wrap items-center gap-2">경상도횟집 <span class="text-[11px] sm:text-xs font-medium text-pink-700 bg-pink-50 px-2 py-1 rounded-full whitespace-nowrap border border-pink-200">[배달주문]</span><a href="https://map.kakao.com/link/search/경상도횟집 동해 묵호" target="_blank" rel="noopener" class="text-[11px] sm:text-xs font-medium text-slate-400 ml-auto">지도 보기 →</a></p>
+          <ul class="mt-2 text-sm sm:text-base text-slate-600 space-y-1.5">
+            <li><strong class="text-slate-800 inline-block w-12 sm:w-14">시간:</strong>10:00 ~ 24:00</li>
+            <li><strong class="text-slate-800 inline-block w-12 sm:w-14">전화:</strong><span class="text-sky-600">033-534-9526</span></li>
+            <li><strong class="text-slate-800 inline-block w-12 sm:w-14 flex-shrink-0 align-top">주소:</strong><span class="inline-block" style="width: calc(100% - 3.5rem);">강원 동해시 일출로 151 19호</span></li>
+          </ul>
+        </div>
+        <div class="bg-pink-50 border border-pink-200 rounded-lg p-3">
+          <p class="font-bold text-pink-800 text-sm mb-2">🛎️ 주문 메뉴</p>
+          <ul class="grid grid-cols-2 gap-x-3 gap-y-1.5 text-sm text-slate-700">
+            <li class="flex items-center gap-1.5">🐟 중자 × 2</li>
+            <li class="flex items-center gap-1.5">🦑 개불</li>
+            <li class="flex items-center gap-1.5">🐚 멍게</li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
@@ -487,7 +504,7 @@
             // ── 1일차 저녁 포장 ──
             { title:'파닭김밥', subtitle:'동해시 시장안길 22', searchQuery:'파닭김밥 동해 묵호', day:'day1', emoji:'🍱', parking:'🅿️ 묵호중앙시장 공영 무료주차장 이용', info:{ hours:'10:00~18:00 (16시 이후 포장만)', phone:'010-5669-9445' } },
             { title:'묵호김밥', subtitle:'동해시 일출로 9-1', searchQuery:'강원특별자치도 동해시 일출로 9-1', day:'day1', emoji:'🍱', parking:'🅿️ 묵호항 공영주차장 이용 (도보 5분)', info:{ hours:'10:00~18:00', phone:'010-2225-7796', note:'포장 예약 필수' } },
-            { title:'경상도횟집', subtitle:'동해시 일출로 151', searchQuery:'경상도횟집 동해 묵호', day:'day1', emoji:'🐠', parking:'🅿️ 삼양비취타워 건물 주차장 이용', info:{ hours:'10:00~24:00', phone:'033-534-9526' } },
+            { title:'경상도횟집', subtitle:'동해시 일출로 151', searchQuery:'경상도횟집 동해 묵호', day:'day1', emoji:'🐠', parking:'🚚 배달주문', info:{ hours:'10:00~24:00', phone:'033-534-9526', note:'배달주문 | 중자×2, 개불, 멍게' } },
             { title:'문어닭강정', subtitle:'동해시 일출로 61', searchQuery:'문어닭강정 동해', day:'day1', emoji:'🐙', parking:'🅿️ 묵호항 공영주차장 이용 (도보 5분)', info:{ hours:'11:00~20:00', phone:'033-531-1554' } },
 
             // ── 공영주차장 ──
